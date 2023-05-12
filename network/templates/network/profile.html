@@ -1,0 +1,93 @@
+{% extends "network/layout.html" %}
+{%  load static %}
+
+{% block body %}
+    <div class="container mt-2">    
+        <div class="profile">
+            <p>
+                <a href="{% url 'profile' profile.id %}" class="profile-heading">{{ profile.first_name }} {{ profile.last_name }}</a> <span class="handle">@{{ profile.username }}</span>
+             </p>
+            {% if user.is_authenticated %}
+                {% if user != profile %}
+                {% if isFollowing %}
+                    <form action="{% url 'unfollow' %}" method="POST">
+                        {% csrf_token %}
+                            <input type="hidden" name="follow" value="{{ profile }}">
+                            <input type="submit" class="btn btn-primary mt-2 mb-2" value="Unfollow">
+                    </form>
+                {% else %}            
+                    <form action="{% url 'follow' %}" method="POST">
+                        {% csrf_token %}
+                            <input type="hidden" name="follow" value="{{ profile }}">
+                            <input type="submit" class="btn btn-primary mt-2 mb-2" value="Follow">
+                    </form>
+                {% endif %}
+                {% endif %}
+            {% endif %}
+            <p>{{ followers.count }} Followers &emsp; {{ following.count }} Following</p>
+ 
+        
+        </div>
+    
+        <div class="posts mt-3" >
+            {% for post in page_obj %}
+                <div class="post">
+                    <p>
+                        <a href="{% url 'profile' post.author.id %}" class="profile-link">{{ post.author.first_name }} {{ post.author.last_name }}</a> <span class="handle">@{{ post.author }}</span>
+                     </p>
+                    <h7 class='content' id="{{ post.id }}">{{ post.content }}</h7>
+                    <p class="date">{{ post.date }}</p>
+                    <div class="like-edit">
+                        <div class="d-flex">
+                            {% if user.is_authenticated %}
+                            {% if post.id in whoYouLiked %}
+                            
+                                <button class="likeButtons btn btn-danger mb-3" value="unlike" id="like{{ post.id }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                    </svg>
+                                </button>
+                            {% else %}
+                                <button class="likeButtons btn btn-outline-danger mb-3" value="like" id="like{{ post.id }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                    </svg>
+                                </button>
+                            {% endif %}
+                            {% endif %}
+                           <p class="mx-2 mt-2">
+                            {% if post.likes.count > 1 %}
+                                {{ post.likes.count }} Likes
+                            {% elif post.likes.count == 1 %}
+                                {{ post.likes.count }} Like
+                            {% else %}
+                                No Likes
+                            {% endif %}
+                           </p> 
+                        </div>
+                        {% if post.author == user %}
+                        <div class="edit">
+                            <form>
+                                {% csrf_token %} 
+                                <button class="editButtons btn btn-info mb-3" name='edit' data-csrf="{{ csrf_token }}" id="edit{{ post.id }}">Edit</button> 
+                            </form>    
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="d-flex justify-content-center" >
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                   {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                  {% endif %}
+                  {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                  {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endblock %}
